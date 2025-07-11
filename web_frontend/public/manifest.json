@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Jeopardy",
+  "name": "Language Learning Jeopardy",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +8,28 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#f7fafc",
+  "theme_color": "#1565c0",
+  "orientation": "any",
+  "description": "Offline-enabled Jeopardy game for language learning",
+  "scope": ".",
+  "shortcuts": [
+    {
+      "name": "New Game",
+      "description": "Start a new Jeopardy session",
+      "url": "."
+    }
+  ]
 }

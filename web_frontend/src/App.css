@@ -1,104 +1,379 @@
-/* CSS Variables for Theme Management */
+/* Jeopardy Game Theme Variables */
 :root {
-  /* Light theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text-primary: #282c34;
-  --text-secondary: #61dafb;
-  --border-color: #e9ecef;
-  --button-bg: #007bff;
-  --button-text: #ffffff;
+  --primary-color: #1565c0;
+  --secondary-color: #ffd600;
+  --accent-color: #43a047;
+  --bg-main: #f7fafc;
+  --bg-header: #ffffff;
+  --border: #d6dde4;
+  --text-default: #212121;
+  --text-subtle: #888;
+  --cell-asked: #cfd8dc;
+  --cell-hover: #f5faff;
+  --cell-selected: #ffe082;
+  --header-shadow: 0 4px 12px #0001;
 }
 
-[data-theme="dark"] {
-  /* Dark theme colors */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #282c34;
-  --text-primary: #ffffff;
-  --text-secondary: #61dafb;
-  --border-color: #404040;
-  --button-bg: #0056b3;
-  --button-text: #ffffff;
+/* Resets and fonts */
+html, body {
+  font-size: 22px;
 }
 
-.App {
-  text-align: center;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-main);
+  color: var(--text-default);
+}
+
+.jeopardy-app {
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: var(--bg-main);
+  min-width: 100vw;
+  box-sizing: border-box;
+  position:relative;
+  overflow-x: hidden;
 }
 
-.App-logo {
-  height: 40vmin;
+/* GameHeader */
+.game-header {
+  background: var(--bg-header);
+  padding: 0.3em 1em 0.3em 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1em;
+  box-shadow: var(--header-shadow);
+  z-index: 10;
+  position: sticky;
+  top: 0;
+}
+
+.progress-bar-bg {
+  height: 12px;
+  width: 160px;
+  background: #e0e0e03b;
+  border-radius: 6px;
+  margin-left: 0.5em;
+  overflow: hidden;
+  position: relative;
+  flex: 0 0 160px;
+}
+.progress-bar-fg {
+  background: var(--accent-color);
+  transition: width 0.5s cubic-bezier(.4,2,.6,1);
+  height: 100%;
+}
+
+/* Scorebox and turn */
+.scores-box {
+  display: flex;
+  gap: 2em;
+  align-items: center;
+  background: none;
+}
+.scores-player {
+  padding: 0.18em 1.1em;
+  border-radius: 7px;
+  background: var(--secondary-color);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: #000;
+  margin-right: 0.6em;
+  font-size: 1.05em;
+  box-shadow: 0 1px 3px #0001;
+}
+.scores-player.teacher {
+  background: var(--primary-color);
+  color: #fff;
+}
+.turn-indicator {
+  background: var(--accent-color);
+  color: #fff;
+  border-radius: 5px;
+  padding: 0.13em 0.9em;
+  font-size: 1em;
+  margin-left: 0.2em;
+}
+
+/* Jeopardy Board Grid */
+.board-wrap {
+  width: 100vw;
+  overflow-x: auto;
+  margin-top: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.jeopardy-board {
+  display: grid;
+  gap: 4px;
+  box-shadow: 0 6px 32px #0002;
+  background: #f9fafc;
+  border-radius: 1.8em;
+  padding: 1.5em 1em;
+  margin: 0 auto 7em auto;
+  min-width: 370px;
+  max-width: 98vw;
+}
+.board-category {
+  font-size: 1.13em;
+  font-weight: 700;
+  background: var(--primary-color);
+  color: #fff;
+  text-align: center;
+  border-radius: 0.6em 0.6em 0 0;
+  padding: 0.44em 0.5em;
+  letter-spacing: 0.02em;
+  word-break: break-word;
+  border-bottom: 5px solid var(--secondary-color);
+}
+.board-row {
+  background: #ffffff;
+  transition: background 0.2s;
+  font-size: 1.04em;
+  font-weight: 700;
+  color: var(--primary-color);
+  min-width: 105px;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0.55em 0.4em 0.3em 0.4em;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  line-height: 1.16;
+}
+.board-row.asked {
+  background: var(--cell-asked);
+  color: var(--text-subtle);
+  text-decoration: line-through;
   pointer-events: none;
+  font-weight: normal;
+}
+.board-row:not(.asked):hover, .board-row.active {
+  background: var(--cell-hover);
+  border: 1.5px solid var(--accent-color);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+@media (max-width: 700px) {
+  .board-wrap {
+    margin-top: 0.55em;
+  }
+  .jeopardy-board {
+    padding: 1em 0.1em;
+    font-size: 0.95em;
+  }
+  .board-row, .board-category {
+    font-size: 1em;
+    min-width: 85px;
+    padding: 0.42em 0.2em;
   }
 }
 
-.App-header {
-  background-color: var(--bg-secondary);
-  min-height: 100vh;
+/* Modal overlays */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(31,31,36,0.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  min-width: 340px;
+  background: #fff;
+  border-radius: 22px;
+  max-width: 94vw;
+  max-height: 97vh;
+  padding: 2em 2.5em;
+  box-shadow: 0 8px 36px #0005;
+  text-align: left;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+@media (max-width: 600px) {
+  .modal {
+    padding: 1.1em 0.2em;
+    min-width: 94vw;
+  }
+}
+.modal-title {
+  font-size: 1.25em;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 0.1em;
+}
+.modal-question {
+  font-size: 1.11em;
+  color: var(--text-default);
+  margin-bottom: 1em;
+}
+.modal-answer {
+  font-size: 1.15em;
+  background: var(--accent-color);
+  color: #fff;
+  padding: 0.45em 0.8em;
+  border-radius: 7px;
+  font-weight: 700;
+  margin-top: 0.4em;
+}
+.modal-actions {
+  display: flex;
+  gap: 1em;
+  margin-top: 1em;
+}
+.btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 0.53em 1.3em;
+  border-radius: 7px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px #0001;
+  background: var(--primary-color);
+  color: #fff;
+  margin-right: 0.4em;
+  transition: background 0.13s, color 0.13s, transform 0.11s;
+}
+.btn.secondary {
+  background: var(--accent-color);
+}
+.btn.warning {
+  background: var(--secondary-color);
+  color: #333;
+}
+.btn:active { transform: scale(0.98); }
+.btn:focus { outline: 2px solid var(--accent-color); border-radius: 7px; }
+
+.fab-wrap {
+  position: fixed;
+  bottom: 34px;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  z-index: 3000;
+  pointer-events: none;
+}
+.fab {
+  pointer-events: auto;
+  border: none;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 64px;
+  height: 64px;
+  color: #fff;
+  background: var(--primary-color);
+  font-size: 2.7em;
+  box-shadow: 0 2px 8px #0004;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.19s, box-shadow 0.13s, transform 0.17s;
+}
+.fab.secondary {
+  background: var(--accent-color);
+}
+.fab:hover, .fab:focus {
+  background: var(--secondary-color);
+  color: #1565c0;
+  box-shadow: 0 4px 16px #0005;
+  outline: 2px solid #43a04733;
+  transform: translateY(-2px);
+}
+@media (max-width: 900px) {
+  .fab-wrap {
+    bottom: 17px;
+    right: 7vw;
+  }
+}
+@media (max-width: 600px) {
+  .fab { width: 48px; height: 48px; font-size: 1.8em; }
+}
+
+/* File upload styles */
+.file-upload-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease;
-  position: relative;
+  margin: 3.5em 0 0 0;
+  background: #fff;
+  padding: 2.5em 1em;
+  border-radius: 36px;
+  box-shadow: 0 7px 38px #0002;
+  width: 98vw;
+  max-width: 550px;
+  min-height: 230px;
+}
+.file-upload-label {
+  font-size: 1.12em;
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 0.8em;
+}
+.upload-input {
+  display: none;
 }
 
-.App-link {
-  color: var(--text-secondary);
-  transition: color 0.3s ease;
-}
-
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
+.upload-btn {
+  font-size: 1.01em;
+  color: #fff;
+  background: var(--accent-color);
+  padding: 0.45em 1.3em;
   border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
+  outline: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+  box-shadow: 0px 2px 6px #0002;
+  margin-top: 1.1em;
+  transition: background 0.13s;
+}
+.upload-btn:hover, .upload-btn:focus {
+  background: var(--primary-color);
+  color: #ffd600;
 }
 
-.theme-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  opacity: 0.9;
+/* Table for preview modal */
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.85em 0 1em 0;
+  font-size: 0.95em;
+  overflow-x: auto;
+}
+.preview-table th,
+.preview-table td {
+  border: 1px solid #d3daea;
+  padding: 0.4em 0.75em;
+  text-align: left;
+}
+.preview-table th {
+  background: var(--secondary-color);
+  color: #222;
+  font-size: 1.04em;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-.theme-toggle:active {
-  transform: translateY(0);
+/* Accessibility enhancements */
+.modal:focus { outline: 3px solid var(--primary-color); }
+.board-row:focus { outline: 3px solid var(--accent-color); }
+@media (max-width:400px) {
+  .preview-table th, .preview-table td { padding: 0.2em 0.3em; }
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive design for mobile */
-@media (max-width: 768px) {
-  .theme-toggle {
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-}
+/* General styles */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: #d5dbe7; border-radius: 4px; }
+::-webkit-scrollbar-thumb:active { background: #bfc9e3; }
