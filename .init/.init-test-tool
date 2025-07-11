@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/language-learning-jeopardy-bdce76f6/web_frontend"
+}
