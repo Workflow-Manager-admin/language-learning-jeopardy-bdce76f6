@@ -46,7 +46,7 @@ function GameHeader({
           userSelect: "none"
         }}
       >
-        Language Jeopardy
+        Language Jeopardy! with Kip
       </span>
 
       {/* Show progressbar only after dataset loaded */}

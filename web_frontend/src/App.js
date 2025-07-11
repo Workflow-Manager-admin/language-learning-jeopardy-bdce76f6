@@ -8,6 +8,11 @@ import FloatingButtons from "./components/FloatingButtons";
 import usePersistentGameState from "./hooks/usePersistentGameState";
 import "./App.css";
 
+// Set the document title for browser tabs (must come after imports)
+if (typeof document !== "undefined") {
+  document.title = "Language Jeopardy! with Kip";
+}
+
 /**
  * Modal to prompt student to accept/reject Double or Nothing risk BEFORE showing the question
  */

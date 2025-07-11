@@ -1,35 +1,15 @@
 {
-  "short_name": "Jeopardy",
-  "name": "Language Learning Jeopardy",
+  "short_name": "L. Jeopardy Kip",
+  "name": "Language Jeopardy! with Kip",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
-    },
-    {
-      "src": "icon-192x192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "icon-512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f7fafc",
   "theme_color": "#1565c0",
-  "orientation": "any",
-  "description": "Offline-enabled Jeopardy game for language learning",
-  "scope": ".",
-  "shortcuts": [
-    {
-      "name": "New Game",
-      "description": "Start a new Jeopardy session",
-      "url": "."
-    }
-  ]
+  "background_color": "#f7fafc"
 }
