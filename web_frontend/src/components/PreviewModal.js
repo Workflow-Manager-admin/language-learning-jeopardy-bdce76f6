@@ -63,7 +63,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
         */}
         <table
           className="preview-table"
-          aria-label="Questions Preview Table (Answer column hidden for privacy)"
+          aria-label="Questions Preview Table (Only Category and Difficulty columns are visible; question/answer hidden for privacy)"
           style={{
             background: "#fff",
             borderRadius: 14,
@@ -89,15 +89,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
                 fontWeight: 700,
                 fontSize: "1.05em",
                 letterSpacing: "0.01em"
-              }}>Question</th>
-              <th style={{
-                background: theme.secondary,
-                color: "#111",
-                fontWeight: 700,
-                fontSize: "1.05em",
-                letterSpacing: "0.01em"
               }}>Difficulty</th>
-              {/* Answer column REMOVED completely for privacy */}
             </tr>
           </thead>
           <tbody>
@@ -114,14 +106,6 @@ function PreviewModal({ items, onStart, onReset, theme }) {
                   maxWidth: 110,
                   overflowWrap: "anywhere"
                 }}>{q.category}</td>
-                <td style={{
-                  color: "#232547",
-                  fontWeight: 600,
-                  background: "#fdfdff",
-                  fontSize: "1em",
-                  maxWidth: 340,
-                  overflowWrap: "anywhere"
-                }}>{q.question}</td>
                 <td style={{
                   color: theme.accent,
                   background: "#f8fbe8",
