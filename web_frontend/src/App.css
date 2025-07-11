@@ -186,7 +186,14 @@ body {
 }
 
 /* Modal overlays */
-.modal-backdrop {
+.modal-backdrop,
+.preview-modal-backdrop {
+  /* Robust, reusable centering for all modals
+     - Uses full viewport
+     - Always flex centered
+     - No left alignment in any viewport
+     - Ensures visually centered and accessible modal dialog
+   */
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -194,7 +201,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow-y: auto;
+  /* Prevents any external layout from interfering */
 }
+
 .modal {
   min-width: 340px;
   background: #fff;
@@ -209,6 +221,7 @@ body {
   flex-direction: column;
   gap: 1em;
   position: relative;
+  margin: 0 auto; /* Ensures horizontal centering fallback */
 }
 @media (max-width: 600px) {
   .modal {
@@ -226,7 +239,17 @@ body {
   outline: none;
   transition: box-shadow 0.12s;
   animation: popup-in 0.19s cubic-bezier(.6,2,.7,1) 1;
-  margin: auto;
+  max-width: 665px;
+  width: 96vw;
+  margin: 0 auto;
+  /* Polished appearance and prevents overflow */
+  background: #fcfdff;
+  /* Let modal take required height, centered by parent flexbox */
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  justify-content: center;
+  position: relative;
 }
 @keyframes popup-in {
   from { opacity: 0; transform: scale(0.92);}

@@ -56,55 +56,31 @@ function PreviewModal({ items, onStart, onReset, theme }) {
     return () => window.removeEventListener("keydown", escHandler);
   }, [onReset]);
 
-  // Modal fully centered with flex, handle click on overlay for "Re-upload"
+  // Modal is fully centered with robust flexbox (no left-align in any viewport), maintains accessibility best practices.
   return (
+    // Robust Flexbox overlay, ensures perfect modal centering on all screens
     <div
-      className="modal-backdrop"
+      className="modal-backdrop preview-modal-backdrop"
       role="dialog"
       aria-modal="true"
       aria-label="Preview uploaded questions"
       tabIndex={-1}
       onClick={onReset}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 2500,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        minWidth: "100vw",
-        background: "rgba(31,31,46,0.62)",
-        overflowY: "auto",
-        transition: "background 0.25s"
-      }}
-      // Trap tab on overlay as well
+      // KeyDown trap for overlay: disables tab out of modal area
       onKeyDown={e => { if(e.key === "Tab") e.stopPropagation(); }}
     >
+      {/* 
+        Modal: Inherits full centering from parent flex.
+        TabIndex and aria-* for accessibility.
+        Additional ARIA role for the dialog document for best practices.
+      */}
       <div
         ref={modalRef}
         className="modal preview-modal"
         tabIndex={0}
         aria-label="Questions Preview"
         role="document"
-        style={{
-          border: `3.5px solid ${theme.primary}`,
-          boxShadow: "0 12px 44px #0008",
-          minWidth: 314,
-          maxWidth: 665,
-          width: "96vw",
-          padding: "2.32em 2.1em 1.6em 2.08em",
-          background: "#fcfdff",
-          margin: "auto",
-          transition: "box-shadow 0.14s",
-          outline: "none",
-          position: "relative",
-          borderRadius: 26,
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.7em",
-          justifyContent: "center"
-        }}
+        // No style prop for margins or manual centering here, let CSS handle all centering via flex parent (.modal-backdrop / .preview-modal-backdrop)
         onClick={e => e.stopPropagation()}
       >
         {/* Visually hideable style-inject for best mobile fit */}
