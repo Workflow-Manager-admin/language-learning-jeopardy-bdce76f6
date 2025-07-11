@@ -158,6 +158,18 @@ body {
   border: 1.5px solid var(--accent-color);
 }
 
+/* Disabled game cells (no question for this difficulty/category) */
+.board-row.disabled,
+.board-row:disabled {
+  background: #e7eaef !important;
+  color: #b4b9c2 !important;
+  border: 1.5px dashed #dde2ec !important;
+  opacity: 0.6 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+}
+
 @media (max-width: 700px) {
   .board-wrap {
     margin-top: 0.55em;

@@ -37,33 +37,65 @@ function JeopardyBoard({
         {/* Render cells as point values */}
         {difficultyLevels.map((diff, rowIdx) =>
           categories.map((cat, colIdx) => {
+            const questionExists =
+              !!(
+                grid &&
+                grid[colIdx] &&
+                typeof grid[colIdx][rowIdx] !== "undefined" &&
+                grid[colIdx][rowIdx]
+              );
             const cellUsed = asked[colIdx][rowIdx];
+            const disabled = cellUsed || !questionExists;
             const className =
-              "board-row" + (cellUsed ? " asked" : "");
+              "board-row" +
+              (cellUsed
+                ? " asked"
+                : !questionExists
+                ? " disabled"
+                : "");
             const label = cellUsed
               ? "Used"
+              : !questionExists
+              ? `No ${diff} question in ${cat} (unavailable)`
               : `${cat}, ${diff}, ${pointsMap[diff] ?? ""} points`;
             return (
               <button
                 key={`${colIdx}-${rowIdx}`}
                 className={className}
-                tabIndex={cellUsed ? -1 : 0}
+                tabIndex={disabled ? -1 : 0}
                 style={{
                   background: cellUsed
                     ? "#cfd8dc"
+                    : !questionExists
+                    ? "#e7eaef"
                     : "#fff",
                   color: cellUsed
                     ? "#8e8e8e"
+                    : !questionExists
+                    ? "#b4b9c2"
                     : theme.primary,
                   borderColor: cellUsed
                     ? "#ccd"
+                    : !questionExists
+                    ? "#dde2ec"
                     : theme.accent,
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  opacity: !questionExists ? 0.6 : 1,
                 }}
-                disabled={cellUsed}
+                disabled={disabled}
+                aria-disabled={disabled}
                 aria-label={label}
-                onClick={() => !cellUsed && onCellClick(rowIdx, colIdx)}
+                onClick={() =>
+                  !cellUsed &&
+                  questionExists &&
+                  onCellClick(rowIdx, colIdx)
+                }
               >
-                {cellUsed ? "✓" : pointsMap[diff]}pts
+                {cellUsed
+                  ? "✓"
+                  : !questionExists
+                  ? "-"
+                  : pointsMap[diff] + "pts"}
               </button>
             );
           })
