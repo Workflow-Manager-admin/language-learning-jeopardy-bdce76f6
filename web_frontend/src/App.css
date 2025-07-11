@@ -208,11 +208,36 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1em;
+  position: relative;
 }
 @media (max-width: 600px) {
   .modal {
     padding: 1.1em 0.2em;
     min-width: 94vw;
+    border-radius: 0;
+  }
+}
+
+/* PreviewModal dedicated tweaks for best centering and polish */
+.preview-modal {
+  /* Use slightly larger border-radius and box-shadow for special Outlining */
+  border-radius: 26px;
+  box-shadow: 0 12px 44px #0006;
+  outline: none;
+  transition: box-shadow 0.12s;
+  animation: popup-in 0.19s cubic-bezier(.6,2,.7,1) 1;
+  margin: auto;
+}
+@keyframes popup-in {
+  from { opacity: 0; transform: scale(0.92);}
+  to   { opacity: 1; transform: scale(1);}
+}
+@media (max-width: 570px) {
+  .preview-modal {
+    min-width: 99vw !important;
+    max-width: 99vw !important;
+    padding: 1.15em 0.13em 1.04em 0.13em !important;
+    border-radius: 0 !important;
   }
 }
 .modal-title {

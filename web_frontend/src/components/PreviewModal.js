@@ -1,24 +1,71 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 
 /**
  * PUBLIC_INTERFACE
  * Modal dialog for previewing parsed questions before starting gameplay.
  * Props: {items, onStart, onReset, theme}
- *
- * Accessibility/visual improvements commented below.
+ * Accessibility/visual improvements:
+ * - Tab trapping within the modal for keyboard users
+ * - aria-modal, explicit role="dialog" and role="document"
+ * - Focus auto-managed to modal on open/close
+ * - Modern flexbox+responsive layout, perfect centering, visual polish, robust on all viewport sizes
  */
 function PreviewModal({ items, onStart, onReset, theme }) {
-  // Modern modal fully centered: use flexbox on backdrop with minHeight and responsive modal width.
+  // Ref to modal for focus management
+  const modalRef = useRef();
+
+  // Trap focus within modal: tab cycles within modal's focusables
+  useEffect(() => {
+    const lastActive = document.activeElement;
+    const node = modalRef.current;
+    if (node) node.focus();
+
+    function handleTab(e) {
+      if (e.key !== "Tab") return;
+      // Get all focusable children
+      const focusable =
+        node.querySelectorAll(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    node && node.addEventListener("keydown", handleTab);
+
+    return () => {
+      node && node.removeEventListener("keydown", handleTab);
+      if (lastActive && typeof lastActive.focus === "function") lastActive.focus();
+    };
+  }, []);
+
+  // ESC: close the modal
+  useEffect(() => {
+    const escHandler = (e) => {
+      if (e.key === "Escape") onReset();
+    };
+    window.addEventListener("keydown", escHandler);
+    return () => window.removeEventListener("keydown", escHandler);
+  }, [onReset]);
+
+  // Modal fully centered with flex, handle click on overlay for "Re-upload"
   return (
     <div
       className="modal-backdrop"
       role="dialog"
       aria-modal="true"
+      aria-label="Preview uploaded questions"
       tabIndex={-1}
       onClick={onReset}
-      // Backdrop clickable for reset/reupload, full screen flex centering for all viewport sizes
       style={{
-        background: "rgba(21,65,192,0.13)",
         position: "fixed",
         inset: 0,
         zIndex: 2500,
@@ -27,36 +74,54 @@ function PreviewModal({ items, onStart, onReset, theme }) {
         justifyContent: "center",
         minHeight: "100vh",
         minWidth: "100vw",
+        background: "rgba(31,31,46,0.62)",
         overflowY: "auto",
-        padding: "0 12px"
+        transition: "background 0.25s"
       }}
+      // Trap tab on overlay as well
+      onKeyDown={e => { if(e.key === "Tab") e.stopPropagation(); }}
     >
       <div
-        className="modal"
-        style={{
-          border: `3.5px solid ${theme.primary}`,
-          boxShadow: "0 12px 40px #0006",
-          maxWidth: 650,
-          minWidth: 300,
-          width: "100%",
-          maxWidth: "95vw",
-          padding: "2.3em 2.0em 1.5em 2.0em",
-          background: "#fcfdff",
-          margin: "0 auto",
-          outline: "none"
-        }}
+        ref={modalRef}
+        className="modal preview-modal"
         tabIndex={0}
         aria-label="Questions Preview"
         role="document"
-        onClick={(e) => e.stopPropagation()}
+        style={{
+          border: `3.5px solid ${theme.primary}`,
+          boxShadow: "0 12px 44px #0008",
+          minWidth: 314,
+          maxWidth: 665,
+          width: "96vw",
+          padding: "2.32em 2.1em 1.6em 2.08em",
+          background: "#fcfdff",
+          margin: "auto",
+          transition: "box-shadow 0.14s",
+          outline: "none",
+          position: "relative",
+          borderRadius: 26,
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.7em",
+          justifyContent: "center"
+        }}
+        onClick={e => e.stopPropagation()}
       >
-        {/* Responsive tweak for small screens */}
+        {/* Visually hideable style-inject for best mobile fit */}
         <style>{`
-          @media (max-width: 450px) {
-            .modal {
+          .preview-modal {
+            animation: popup-in 0.19s cubic-bezier(.6,2,.7,1) 1;
+          }
+          @keyframes popup-in {
+            from { opacity: 0; transform: scale(0.92);}
+            to   { opacity: 1; transform: scale(1);}
+          }
+          @media (max-width: 570px) {
+            .preview-modal {
               min-width: 99vw !important;
               max-width: 99vw !important;
-              padding: 1.1em 0.4em !important;
+              border-radius: 0 !important;
+              padding: 1.22em 0.21em 1.05em 0.21em !important;
             }
           }
         `}</style>
@@ -64,63 +129,67 @@ function PreviewModal({ items, onStart, onReset, theme }) {
         <div
           className="modal-title"
           style={{
-            fontWeight: 800,
-            fontSize: "1.46em",
+            fontWeight: 900,
+            fontSize: "1.48em",
             color: theme.primary,
-            letterSpacing: "-0.01em",
-            textShadow: "0 2px 7px #ccd6fa66",
-            marginBottom: "0.5em",
-            textAlign: "left"
+            letterSpacing: "-0.012em",
+            textShadow: "0 2px 8px #ccd6fa80",
+            marginBottom: "0.43em",
+            textAlign: "left",
+            lineHeight: 1.17
           }}
+          id="preview-modal-title"
         >
           Preview Questions{" "}
           <span
             style={{
               fontWeight: 500,
               color: theme.accent,
-              fontSize: "0.76em"
+              fontSize: "0.74em"
             }}
           >
             ({items.length} shown)
           </span>
         </div>
-        {/* 
-          Strong visual contrast and table with only 
-          Category, Question, and Difficulty columns (answers hidden)
-        */}
+        {/* Table with improved contrast */}
         <table
           className="preview-table"
-          aria-label="Questions Preview Table (Only Category and Difficulty columns are visible; question/answer hidden for privacy)"
+          aria-label="Questions Preview Table (Category, Difficulty; answers hidden for privacy)"
           style={{
             background: "#fff",
             borderRadius: 14,
-            boxShadow: "0 2px 12px #0002",
+            boxShadow: "0 2px 14px #0001",
             fontSize: "1em",
-            marginTop: "0.1em",
-            marginBottom: "1.3em",
-            overflow: "hidden"
+            marginTop: "0.12em",
+            marginBottom: "1.28em",
+            overflow: "hidden",
+            width: "100%"
           }}
         >
           <thead>
             <tr>
               <th
+                scope="col"
                 style={{
                   background: theme.secondary,
                   color: "#111",
                   fontWeight: 700,
-                  fontSize: "1.05em",
-                  letterSpacing: "0.01em"
+                  fontSize: "1.07em",
+                  letterSpacing: "0.01em",
+                  borderTopLeftRadius: 8
                 }}
               >
                 Category
               </th>
               <th
+                scope="col"
                 style={{
                   background: theme.secondary,
                   color: "#111",
                   fontWeight: 700,
-                  fontSize: "1.05em",
-                  letterSpacing: "0.01em"
+                  fontSize: "1.07em",
+                  letterSpacing: "0.01em",
+                  borderTopRightRadius: 8
                 }}
               >
                 Difficulty
@@ -136,11 +205,12 @@ function PreviewModal({ items, onStart, onReset, theme }) {
                     fontWeight: 600,
                     background: "#f7f7fe",
                     borderLeft: `3px solid ${theme.accent}`,
-                    borderTopLeftRadius: 10,
-                    borderBottomLeftRadius: 10,
-                    fontSize: "0.98em",
-                    maxWidth: 110,
-                    overflowWrap: "anywhere"
+                    borderTopLeftRadius: 7,
+                    borderBottomLeftRadius: 11,
+                    fontSize: "0.99em",
+                    maxWidth: 180,
+                    overflowWrap: "anywhere",
+                    padding: "0.41em 0.79em"
                   }}
                 >
                   {q.category}
@@ -149,14 +219,15 @@ function PreviewModal({ items, onStart, onReset, theme }) {
                   style={{
                     color: theme.accent,
                     background: "#f8fbe8",
-                    fontWeight: 700,
-                    fontSize: "1em",
+                    fontWeight: 800,
+                    fontSize: "1.01em",
                     borderRight: `2px solid ${theme.secondary}`,
-                    borderTopRightRadius: 10,
-                    borderBottomRightRadius: 10,
+                    borderTopRightRadius: 9,
+                    borderBottomRightRadius: 11,
                     textAlign: "center",
-                    minWidth: 90,
-                    textShadow: "0px 2px 4px #ffe"
+                    minWidth: 80,
+                    textShadow: "0px 2px 4px #ffe",
+                    padding: "0.41em 0.79em"
                   }}
                 >
                   {q.difficulty}
@@ -165,13 +236,13 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             ))}
           </tbody>
         </table>
-        {/* Button area: large, high-contrast, touch/mouse friendly */}
+        {/* Button area: tab order controlled */}
         <div
           className="modal-actions"
           style={{
-            marginTop: "1.25em",
+            marginTop: "1.10em",
             display: "flex",
-            gap: "1em",
+            gap: "1.2em",
             flexWrap: "wrap",
             justifyContent: "flex-end"
           }}
@@ -181,20 +252,20 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             style={{
               background: theme.primary,
               color: "#fff",
-              fontWeight: 700,
+              fontWeight: 900,
               padding: "0.63em 2.1em",
-              fontSize: "1.08em",
-              borderRadius: "8px",
-              boxShadow: "0 1px 6px #bfc9e633",
+              fontSize: "1.13em",
+              borderRadius: "9px",
+              boxShadow: "0 1px 7px #bfc9e656",
               border: "none",
               outline: "none",
-              letterSpacing: "0.01em",
-              transition: "background 0.16s"
+              letterSpacing: "0.012em",
+              transition: "background 0.13s"
             }}
             onClick={onStart}
             tabIndex={0}
             aria-label="Start game with uploaded questions"
-            // Visually the primary call to action
+            id="modal-start-btn"
           >
             Start Game
           </button>
@@ -204,19 +275,20 @@ function PreviewModal({ items, onStart, onReset, theme }) {
               background: theme.accent,
               color: "#fff",
               padding: "0.63em 2.1em",
-              fontWeight: 700,
-              fontSize: "1.08em",
-              borderRadius: "8px",
-              marginLeft: "0.8em",
-              boxShadow: "0 1px 4px #bfdbee3d",
+              fontWeight: 900,
+              fontSize: "1.12em",
+              borderRadius: "9px",
+              marginLeft: "0.7em",
+              boxShadow: "0 1px 6px #bfdbee44",
               border: "none",
               outline: "none",
-              letterSpacing: "0.01em",
-              transition: "background 0.16s"
+              letterSpacing: "0.012em",
+              transition: "background 0.13s"
             }}
             onClick={onReset}
             tabIndex={0}
             aria-label="Cancel and re-upload file"
+            id="modal-reupload-btn"
           >
             Re-upload File
           </button>
@@ -224,19 +296,19 @@ function PreviewModal({ items, onStart, onReset, theme }) {
         {/* CLEAR note for teacher that answers are hidden */}
         <div
           style={{
-            fontSize: "0.96em",
+            fontSize: "0.98em",
             color: "#607d8b",
-            marginTop: "1.39em",
+            marginTop: "1.19em",
             textAlign: "center",
-            letterSpacing: "0.02em",
+            letterSpacing: "0.016em",
             background: "#f2fbfa",
-            padding: "0.46em 1.1em",
-            borderRadius: 10,
-            border: `1.5px dashed ${theme.accent}66`,
-            marginBottom: "-0.6em"
+            padding: "0.44em 1.10em",
+            borderRadius: 11,
+            border: `1.8px dashed ${theme.accent}77`,
+            marginBottom: "-0.45em"
           }}
         >
-          <span style={{ fontWeight: 550, color: theme.primary }}>
+          <span style={{ fontWeight: 600, color: theme.primary }}>
             Answer column is hidden from preview for classroom privacy.
           </span>
         </div>
