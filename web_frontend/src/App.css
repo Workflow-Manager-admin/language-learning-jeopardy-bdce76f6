@@ -185,14 +185,19 @@ body {
   }
 }
 
-/* Modal overlays */
+/* Modal overlays (Backdrop) */
+/* 
+   Ensures modal dialogs are always perfectly centered via flexbox.
+   Applies to .modal-backdrop and any custom modal overlay classes (such as .preview-modal-backdrop).
+   Accessibility: overlay covers full viewport, high z-index, allows user to click outside modal to dismiss.
+*/
 .modal-backdrop,
 .preview-modal-backdrop {
-  /* Robust, reusable centering for all modals
-     - Uses full viewport
-     - Always flex centered
-     - No left alignment in any viewport
-     - Ensures visually centered and accessible modal dialog
+  /* Robust, reusable centering for all modals:
+     - Uses full viewport dimensions (position:fixed and inset:0)
+     - Always perfectly centered by display:flex (align-items + justify-content)
+     - No left-alignment at any viewport/device; never rely on margin auto or transform
+     - background rgba for backdrop dimming
    */
   position: fixed;
   inset: 0;
@@ -204,9 +209,18 @@ body {
   min-height: 100vh;
   min-width: 100vw;
   overflow-y: auto;
-  /* Prevents any external layout from interfering */
+  /* Prevents any external layout from interfering with centering */
+  /* No margin or padding allowed on backdrop */
 }
 
+/* Modal dialog container base styles (works for all modals) */
+/* 
+   - No manual margin for centering! Rely solely on parent flex.
+   - position:relative for stacking child elements (close btn, etc)
+   - z-index always above backdrop
+   - Fully responsive width on all screen sizes
+   - For accessibility: focusable via tabIndex, border-radius for visual clarity
+*/
 .modal {
   min-width: 340px;
   background: #fff;
@@ -221,8 +235,10 @@ body {
   flex-direction: column;
   gap: 1em;
   position: relative;
-  margin: 0 auto; /* Ensures horizontal centering fallback */
+  /* Do not use margin:auto for centering - let .modal-backdrop flexbox do all centering */
 }
+
+/* Responsive: modal fills screen and removes border radius on smallest screens */
 @media (max-width: 600px) {
   .modal {
     padding: 1.1em 0.2em;
@@ -231,9 +247,13 @@ body {
   }
 }
 
-/* PreviewModal dedicated tweaks for best centering and polish */
+/* PreviewModal extra polish and perfect centering
+   - Slightly larger border-radius and box-shadow
+   - Let parent flexbox always handle vertical/horizontal centering
+   - No left alignment ever
+   - Retain display:flex for child layout and gap for consistent spacing
+*/
 .preview-modal {
-  /* Use slightly larger border-radius and box-shadow for special Outlining */
   border-radius: 26px;
   box-shadow: 0 12px 44px #0006;
   outline: none;
@@ -241,20 +261,25 @@ body {
   animation: popup-in 0.19s cubic-bezier(.6,2,.7,1) 1;
   max-width: 665px;
   width: 96vw;
-  margin: 0 auto;
-  /* Polished appearance and prevents overflow */
   background: #fcfdff;
-  /* Let modal take required height, centered by parent flexbox */
   display: flex;
   flex-direction: column;
   gap: 0.7em;
   justify-content: center;
   position: relative;
+  /* Remove margin:0 auto! (centering is handled by parent flexbox) */
 }
+
+/* Popup animation for modal appearance */
 @keyframes popup-in {
   from { opacity: 0; transform: scale(0.92);}
   to   { opacity: 1; transform: scale(1);}
 }
+
+/* Dedicated mobile tweaks:
+   - Modal fills nearly entire viewport for best mobile accessibility
+   - Removes border-radius for edge-to-edge dialog
+*/
 @media (max-width: 570px) {
   .preview-modal {
     min-width: 99vw !important;
@@ -263,6 +288,14 @@ body {
     border-radius: 0 !important;
   }
 }
+
+/* --- Accessibility and Legacy Cleanup --- */
+
+/* Remove any legacy or "left" margin overriding styles for all .modal, .preview-modal, and .modal-backdrop classes -- centered by Flexbox only */
+/* No further legacy rules detected for modal centering */
+
+/* Accessibility focus indicators for modals and action buttons */
+.modal:focus { outline: 3px solid var(--primary-color); }
 .modal-title {
   font-size: 1.25em;
   font-weight: bold;

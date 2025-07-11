@@ -3,34 +3,37 @@ import React, { useRef, useEffect } from "react";
 /**
  * PUBLIC_INTERFACE
  * Modal dialog for previewing parsed questions before starting gameplay.
+ * Robust accessibility, centering, and responsive best practices.
  * Props: {items, onStart, onReset, theme}
- * Accessibility/visual improvements:
- * - Tab trapping within the modal for keyboard users
- * - aria-modal, explicit role="dialog" and role="document"
+ *
+ * Accessibility features:
+ * - Tab trapping within the modal for keyboard users (keeps focus in modal)
+ * - aria-modal, role="dialog" & role="document"
  * - Focus auto-managed to modal on open/close
- * - Modern flexbox+responsive layout, perfect centering, visual polish, robust on all viewport sizes
+ * - ESC key closes the modal
+ * - Modal content is always perfectly centered with robust flex CSS
+ *
+ * Responsiveness:
+ * - Modal scales to mobile, tablet, and desktop
+ * - No left-alignment ever; always centered horizontally and vertically
  */
 function PreviewModal({ items, onStart, onReset, theme }) {
-  // Ref to modal for focus management
+  // Focus management: keep modal focused for keyboard nav
   const modalRef = useRef();
 
-  // Trap focus within modal: tab cycles within modal's focusables
   useEffect(() => {
     const lastActive = document.activeElement;
     const node = modalRef.current;
     if (node) node.focus();
 
+    // Trap focus inside modal when open
     function handleTab(e) {
       if (e.key !== "Tab") return;
-      // Get all focusable children
-      const focusable =
-        node.querySelectorAll(
-          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
-        );
+      const focusable = node.querySelectorAll(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+      );
       if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
+      const first = focusable[0], last = focusable[focusable.length - 1];
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -40,25 +43,22 @@ function PreviewModal({ items, onStart, onReset, theme }) {
       }
     }
     node && node.addEventListener("keydown", handleTab);
-
     return () => {
       node && node.removeEventListener("keydown", handleTab);
       if (lastActive && typeof lastActive.focus === "function") lastActive.focus();
     };
   }, []);
 
-  // ESC: close the modal
+  // ESCAPE closes modal
   useEffect(() => {
-    const escHandler = (e) => {
-      if (e.key === "Escape") onReset();
-    };
+    const escHandler = e => { if (e.key === "Escape") onReset(); };
     window.addEventListener("keydown", escHandler);
     return () => window.removeEventListener("keydown", escHandler);
   }, [onReset]);
 
-  // Modal is fully centered with robust flexbox (no left-align in any viewport), maintains accessibility best practices.
+  // The modal is perfectly centered (CSS flex in App.css) in all browsers/devices.
+  // All custom margins for modal centering have been removed. Only rely on robust parent Flexbox.
   return (
-    // Robust Flexbox overlay, ensures perfect modal centering on all screens
     <div
       className="modal-backdrop preview-modal-backdrop"
       role="dialog"
@@ -66,13 +66,15 @@ function PreviewModal({ items, onStart, onReset, theme }) {
       aria-label="Preview uploaded questions"
       tabIndex={-1}
       onClick={onReset}
-      // KeyDown trap for overlay: disables tab out of modal area
-      onKeyDown={e => { if(e.key === "Tab") e.stopPropagation(); }}
+      // overlay receives click, closes modal (but stops event if dialog is clicked)
+      onKeyDown={e => { if (e.key === "Tab") e.stopPropagation(); }}
     >
       {/* 
-        Modal: Inherits full centering from parent flex.
-        TabIndex and aria-* for accessibility.
-        Additional ARIA role for the dialog document for best practices.
+        Modal:
+        - Receives focus when opened.
+        - role="document" for screen readers.
+        - No margin/padding overrides for centering: always let .modal-backdrop do the work.
+        - Accessible, keyboard focusable, responsive sizing.
       */}
       <div
         ref={modalRef}
@@ -80,30 +82,12 @@ function PreviewModal({ items, onStart, onReset, theme }) {
         tabIndex={0}
         aria-label="Questions Preview"
         role="document"
-        // No style prop for margins or manual centering here, let CSS handle all centering via flex parent (.modal-backdrop / .preview-modal-backdrop)
         onClick={e => e.stopPropagation()}
       >
-        {/* Visually hideable style-inject for best mobile fit */}
-        <style>{`
-          .preview-modal {
-            animation: popup-in 0.19s cubic-bezier(.6,2,.7,1) 1;
-          }
-          @keyframes popup-in {
-            from { opacity: 0; transform: scale(0.92);}
-            to   { opacity: 1; transform: scale(1);}
-          }
-          @media (max-width: 570px) {
-            .preview-modal {
-              min-width: 99vw !important;
-              max-width: 99vw !important;
-              border-radius: 0 !important;
-              padding: 1.22em 0.21em 1.05em 0.21em !important;
-            }
-          }
-        `}</style>
-        {/* Modal title styling for large clear header */}
+        {/* Modal heading */}
         <div
           className="modal-title"
+          id="preview-modal-title"
           style={{
             fontWeight: 900,
             fontSize: "1.48em",
@@ -114,7 +98,6 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             textAlign: "left",
             lineHeight: 1.17
           }}
-          id="preview-modal-title"
         >
           Preview Questions{" "}
           <span
@@ -127,7 +110,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             ({items.length} shown)
           </span>
         </div>
-        {/* Table with improved contrast */}
+        {/* Table (category, difficulty, answers hidden) */}
         <table
           className="preview-table"
           aria-label="Questions Preview Table (Category, Difficulty; answers hidden for privacy)"
@@ -212,7 +195,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             ))}
           </tbody>
         </table>
-        {/* Button area: tab order controlled */}
+        {/* Modal action buttons */}
         <div
           className="modal-actions"
           style={{
@@ -269,7 +252,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             Re-upload File
           </button>
         </div>
-        {/* CLEAR note for teacher that answers are hidden */}
+        {/* Accessibility: clear hidden answers note */}
         <div
           style={{
             fontSize: "0.98em",
