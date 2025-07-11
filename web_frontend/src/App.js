@@ -8,6 +8,62 @@ import FloatingButtons from "./components/FloatingButtons";
 import usePersistentGameState from "./hooks/usePersistentGameState";
 import "./App.css";
 
+/**
+ * Modal to prompt student to accept/reject Double or Nothing risk BEFORE showing the question
+ */
+function DoubleOrNothingChoiceModal({ onAccept, onDecline, theme }) {
+  return (
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      tabIndex={-1}
+      onClick={onDecline}
+    >
+      <div
+        className="modal"
+        tabIndex={0}
+        style={{
+          border: `3px solid ${theme.secondary}`,
+          boxShadow: "0 8px 36px #ffea005a",
+          background: "#fffbe9",
+          color: theme.primary,
+          minWidth: 320,
+          maxWidth: "95vw",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="modal-title" style={{ color: theme.secondary, fontWeight: 900 }}>
+          Double or Nothing!
+        </div>
+        <div className="modal-question" style={{ color: theme.primary, fontWeight: 500 }}>
+          If you accept this challenge, you'll risk <b>all your current winnings</b> for a chance to double them.
+          <br />
+          <br />
+          <b>If you answer the question correctly:</b> Your winnings are doubled!<br />
+          <b>If you answer incorrectly:</b> Your winnings will be reset to <span style={{ color: "#c62828" }}>0</span>.
+        </div>
+        <div className="modal-actions" style={{ marginTop: "1em" }}>
+          <button
+            className="btn secondary"
+            style={{ background: theme.secondary, color: "#222" }}
+            onClick={onAccept}
+          >
+            Take the Risk
+          </button>
+          <button
+            className="btn"
+            style={{ background: theme.primary, color: "#fff" }}
+            onClick={onDecline}
+          >
+            Play as Normal
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Color theme provided
 const THEME = {
   primary: "#1565c0",
@@ -28,11 +84,41 @@ function App() {
     clearPersistedState,
   } = usePersistentGameState();
 
-  // Local transient state
+  // Local transient state for question modal (and for DoN modal)
   const [questionModal, setQuestionModal] = useState({
     open: false,
     cell: null, // {row, col}
   });
+  const [doubleOrNothingModal, setDoubleOrNothingModal] = useState({
+    open: false,
+    cell: null,
+  });
+  const [pendingNormalCell, setPendingNormalCell] = useState(null); // If user "declines" DoN
+
+  // --- Helper to randomly pick two unique cells for DoN ---
+  function pickDoubleOrNothingCells({ categories, difficultyLevels, grid, asked }) {
+    // Pick only cells that have a question (not undefined), and not asked
+    let availableCells = [];
+    for (let col = 0; col < categories.length; ++col) {
+      for (let row = 0; row < difficultyLevels.length; ++row) {
+        if (
+          grid &&
+          grid[col] &&
+          grid[col][row] &&
+          !asked[col][row]
+        ) {
+          availableCells.push({ row, col });
+        }
+      }
+    }
+    // Shuffle & pick 2 unique
+    if (availableCells.length < 2) return [];
+    for (let i = availableCells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [availableCells[i], availableCells[j]] = [availableCells[j], availableCells[i]];
+    }
+    return [availableCells[0], availableCells[1]];
+  }
 
   // Handle file upload and successful parse from child
   const onUploadParsed = useCallback(
@@ -52,6 +138,7 @@ function App() {
         )
       );
 
+      // Initialize game state but don't pick DoN cells until game starts (for true randomness)
       setPersistedState({
         questions,
         categories,
@@ -66,17 +153,24 @@ function App() {
         mode: "preview",
         previewItems,
         progress: 0,
+        doubleOrNothingCells: null, // Not assigned until first play
       });
     },
     [setPersistedState]
   );
 
-  // Begin game after preview
+  // Begin game after preview;
+  // Pick and persist the doN cells if not already set
   const startGame = () => {
-    setPersistedState((prev) => ({
-      ...prev,
-      mode: "playing",
-    }));
+    setPersistedState((prev) => {
+      let next = { ...prev, mode: "playing" };
+      if (!prev.doubleOrNothingCells) {
+        // Choose cells for DoN; ensure they're not already asked (shouldn't happen on new game)
+        const picked = pickDoubleOrNothingCells(prev);
+        next.doubleOrNothingCells = picked;
+      }
+      return next;
+    });
   };
 
   // When a board cell is clicked
@@ -85,16 +179,48 @@ function App() {
       !persistedState.asked[colIdx][rowIdx] &&
       persistedState.mode === "playing"
     ) {
-      setQuestionModal({ open: true, cell: { row: rowIdx, col: colIdx } });
+      const doNCells = persistedState.doubleOrNothingCells || [];
+      const isDoubleOrNothing =
+        doNCells.find(
+          (c) => c.row === rowIdx && c.col === colIdx
+        ) !== undefined;
+
+      if (isDoubleOrNothing) {
+        setDoubleOrNothingModal({ open: true, cell: { row: rowIdx, col: colIdx } });
+      } else {
+        setQuestionModal({ open: true, cell: { row: rowIdx, col: colIdx }, doubleOrNothing: false });
+      }
     }
   };
 
   // When modal is closed without marking (e.g., overlay/cancel)
   const closeModal = () => setQuestionModal({ open: false, cell: null });
 
-  // Handle answer marking -- only update student winnings if 'Correct'
+  // Called when the DoN modal is accepted.
+  const onDoubleOrNothingAccept = () => {
+    // Open the question modal but flag as DoN
+    setQuestionModal({
+      open: true,
+      cell: doubleOrNothingModal.cell,
+      doubleOrNothing: true,
+    });
+    setDoubleOrNothingModal({ open: false, cell: null });
+  };
+
+  // Called when the DoN modal is declined.
+  const onDoubleOrNothingDecline = () => {
+    // Open the question modal ~as normal
+    setQuestionModal({
+      open: true,
+      cell: doubleOrNothingModal.cell,
+      doubleOrNothing: false,
+    });
+    setDoubleOrNothingModal({ open: false, cell: null });
+  };
+
+  // Handle answer marking, differentiate DoN scenario vs normal
   const onMarkAnswer = (correct) => {
-    const { cell } = questionModal;
+    const { cell, doubleOrNothing } = questionModal;
     if (!cell || !persistedState) {
       closeModal();
       return;
@@ -109,9 +235,27 @@ function App() {
     const pointVal =
       persistedState.pointsMap[persistedState.difficultyLevels[row]] || 0;
     let newStudentScore = persistedState.studentScore || 0;
-    if (correct) {
-      newStudentScore += pointVal;
+
+    // Find if this cell is (was) DoN
+    const isDoN =
+      persistedState.doubleOrNothingCells &&
+      persistedState.doubleOrNothingCells.some(
+        c => c.row === row && c.col === col
+      );
+
+    if (doubleOrNothing && isDoN) {
+      // If student accepted DoN
+      if (correct) {
+        newStudentScore = newStudentScore * 2;
+      } else {
+        newStudentScore = 0;
+      }
+    } else {
+      if (correct) {
+        newStudentScore += pointVal;
+      }
     }
+
     const totalQuestions =
       persistedState.categories.length * persistedState.difficultyLevels.length;
     const progress =
@@ -193,8 +337,18 @@ function App() {
             asked={persistedState.asked}
             onCellClick={onCellClick}
             theme={THEME}
+            doubleOrNothingCells={persistedState.doubleOrNothingCells}
           />
         )}
+
+      {/* Double or Nothing pre-question prompt */}
+      {doubleOrNothingModal.open && (
+        <DoubleOrNothingChoiceModal
+          onAccept={onDoubleOrNothingAccept}
+          onDecline={onDoubleOrNothingDecline}
+          theme={THEME}
+        />
+      )}
 
       {/* Question Modal */}
       {questionModal.open && (
