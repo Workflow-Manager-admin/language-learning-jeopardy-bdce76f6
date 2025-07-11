@@ -8,6 +8,7 @@ import React from "react";
  * Accessibility/visual improvements commented below.
  */
 function PreviewModal({ items, onStart, onReset, theme }) {
+  // Modern modal fully centered: use flexbox on backdrop with minHeight and responsive modal width.
   return (
     <div
       className="modal-backdrop"
@@ -15,29 +16,50 @@ function PreviewModal({ items, onStart, onReset, theme }) {
       aria-modal="true"
       tabIndex={-1}
       onClick={onReset}
-      // Backdrop easily clickable to allow reupload/reset, can be focused for accessibility
+      // Backdrop clickable for reset/reupload, full screen flex centering for all viewport sizes
       style={{
-        background: "rgba(21,65,192,0.08)", // slightly higher contrast
+        background: "rgba(21,65,192,0.13)",
+        position: "fixed",
+        inset: 0,
+        zIndex: 2500,
+        display: "flex",
+        alignItems: "center",
         justifyContent: "center",
-        alignItems: "flex-start", // pop modal down for large screens, friendlier for tall displays
         minHeight: "100vh",
-        overflowY: "auto", // improves accessibility for modal overflow
+        minWidth: "100vw",
+        overflowY: "auto",
+        padding: "0 12px"
       }}
     >
       <div
         className="modal"
         style={{
           border: `3.5px solid ${theme.primary}`,
-          boxShadow: "0 12px 40px #0006", // higher shadow for clear overlay pop
+          boxShadow: "0 12px 40px #0006",
           maxWidth: 650,
-          minWidth: 315,
+          minWidth: 300,
+          width: "100%",
+          maxWidth: "95vw",
           padding: "2.3em 2.0em 1.5em 2.0em",
-          background: "#fcfdff", // slightly warmer than pure white
+          background: "#fcfdff",
+          margin: "0 auto",
+          outline: "none"
         }}
         tabIndex={0}
         aria-label="Questions Preview"
+        role="document"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Responsive tweak for small screens */}
+        <style>{`
+          @media (max-width: 450px) {
+            .modal {
+              min-width: 99vw !important;
+              max-width: 99vw !important;
+              padding: 1.1em 0.4em !important;
+            }
+          }
+        `}</style>
         {/* Modal title styling for large clear header */}
         <div
           className="modal-title"
@@ -48,14 +70,19 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             letterSpacing: "-0.01em",
             textShadow: "0 2px 7px #ccd6fa66",
             marginBottom: "0.5em",
-            textAlign: "left",
+            textAlign: "left"
           }}
         >
-          Preview Questions <span style={{
-            fontWeight: 500,
-            color: theme.accent,
-            fontSize: "0.76em"
-          }}>({items.length} shown)</span>
+          Preview Questions{" "}
+          <span
+            style={{
+              fontWeight: 500,
+              color: theme.accent,
+              fontSize: "0.76em"
+            }}
+          >
+            ({items.length} shown)
+          </span>
         </div>
         {/* 
           Strong visual contrast and table with only 
@@ -71,53 +98,69 @@ function PreviewModal({ items, onStart, onReset, theme }) {
             fontSize: "1em",
             marginTop: "0.1em",
             marginBottom: "1.3em",
-            overflow: "hidden",
+            overflow: "hidden"
           }}
         >
           <thead>
             <tr>
-              <th style={{
-                background: theme.secondary,
-                color: "#111",
-                fontWeight: 700,
-                fontSize: "1.05em",
-                letterSpacing: "0.01em"
-              }}>Category</th>
-              <th style={{
-                background: theme.secondary,
-                color: "#111",
-                fontWeight: 700,
-                fontSize: "1.05em",
-                letterSpacing: "0.01em"
-              }}>Difficulty</th>
+              <th
+                style={{
+                  background: theme.secondary,
+                  color: "#111",
+                  fontWeight: 700,
+                  fontSize: "1.05em",
+                  letterSpacing: "0.01em"
+                }}
+              >
+                Category
+              </th>
+              <th
+                style={{
+                  background: theme.secondary,
+                  color: "#111",
+                  fontWeight: 700,
+                  fontSize: "1.05em",
+                  letterSpacing: "0.01em"
+                }}
+              >
+                Difficulty
+              </th>
             </tr>
           </thead>
           <tbody>
             {items.map((q, i) => (
               <tr key={i} tabIndex={0}>
-                <td style={{
-                  color: theme.primary,
-                  fontWeight: 600,
-                  background: "#f7f7fe",
-                  borderLeft: `3px solid ${theme.accent}`,
-                  borderTopLeftRadius: 10,
-                  borderBottomLeftRadius: 10,
-                  fontSize: "0.98em",
-                  maxWidth: 110,
-                  overflowWrap: "anywhere"
-                }}>{q.category}</td>
-                <td style={{
-                  color: theme.accent,
-                  background: "#f8fbe8",
-                  fontWeight: 700,
-                  fontSize: "1em",
-                  borderRight: `2px solid ${theme.secondary}`,
-                  borderTopRightRadius: 10,
-                  borderBottomRightRadius: 10,
-                  textAlign: "center",
-                  minWidth: 90,
-                  textShadow: "0px 2px 4px #ffe"
-                }}>{q.difficulty}</td>
+                <td
+                  style={{
+                    color: theme.primary,
+                    fontWeight: 600,
+                    background: "#f7f7fe",
+                    borderLeft: `3px solid ${theme.accent}`,
+                    borderTopLeftRadius: 10,
+                    borderBottomLeftRadius: 10,
+                    fontSize: "0.98em",
+                    maxWidth: 110,
+                    overflowWrap: "anywhere"
+                  }}
+                >
+                  {q.category}
+                </td>
+                <td
+                  style={{
+                    color: theme.accent,
+                    background: "#f8fbe8",
+                    fontWeight: 700,
+                    fontSize: "1em",
+                    borderRight: `2px solid ${theme.secondary}`,
+                    borderTopRightRadius: 10,
+                    borderBottomRightRadius: 10,
+                    textAlign: "center",
+                    minWidth: 90,
+                    textShadow: "0px 2px 4px #ffe"
+                  }}
+                >
+                  {q.difficulty}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -146,7 +189,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
               border: "none",
               outline: "none",
               letterSpacing: "0.01em",
-              transition: "background 0.16s",
+              transition: "background 0.16s"
             }}
             onClick={onStart}
             tabIndex={0}
@@ -169,7 +212,7 @@ function PreviewModal({ items, onStart, onReset, theme }) {
               border: "none",
               outline: "none",
               letterSpacing: "0.01em",
-              transition: "background 0.16s",
+              transition: "background 0.16s"
             }}
             onClick={onReset}
             tabIndex={0}
@@ -179,18 +222,20 @@ function PreviewModal({ items, onStart, onReset, theme }) {
           </button>
         </div>
         {/* CLEAR note for teacher that answers are hidden */}
-        <div style={{
-          fontSize: "0.96em",
-          color: "#607d8b",
-          marginTop: "1.39em",
-          textAlign: "center",
-          letterSpacing: "0.02em",
-          background: "#f2fbfa",
-          padding: "0.46em 1.1em",
-          borderRadius: 10,
-          border: `1.5px dashed ${theme.accent}66`,
-          marginBottom: "-0.6em"
-        }}>
+        <div
+          style={{
+            fontSize: "0.96em",
+            color: "#607d8b",
+            marginTop: "1.39em",
+            textAlign: "center",
+            letterSpacing: "0.02em",
+            background: "#f2fbfa",
+            padding: "0.46em 1.1em",
+            borderRadius: 10,
+            border: `1.5px dashed ${theme.accent}66`,
+            marginBottom: "-0.6em"
+          }}
+        >
           <span style={{ fontWeight: 550, color: theme.primary }}>
             Answer column is hidden from preview for classroom privacy.
           </span>
@@ -201,3 +246,4 @@ function PreviewModal({ items, onStart, onReset, theme }) {
 }
 
 export default PreviewModal;
+
