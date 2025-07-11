@@ -61,8 +61,8 @@ function App() {
         asked: Array(categories.length)
           .fill(0)
           .map(() => Array(difficultyLevels.length).fill(false)),
-        scores: [0, 0],
-        turn: 0,
+        studentScore: 0,
+        // Remove teacher-vs-student; only track student winnings
         mode: "preview",
         previewItems,
         progress: 0,
@@ -92,7 +92,7 @@ function App() {
   // When modal is closed without marking (e.g., overlay/cancel)
   const closeModal = () => setQuestionModal({ open: false, cell: null });
 
-  // Handle answer marking (and alternate turn, update scores/asked/progress)
+  // Handle answer marking -- only update student winnings if 'Correct'
   const onMarkAnswer = (correct) => {
     const { cell } = questionModal;
     if (!cell || !persistedState) {
@@ -108,11 +108,10 @@ function App() {
     );
     const pointVal =
       persistedState.pointsMap[persistedState.difficultyLevels[row]] || 0;
-    const scores = [...persistedState.scores];
+    let newStudentScore = persistedState.studentScore || 0;
     if (correct) {
-      scores[persistedState.turn] += pointVal;
+      newStudentScore += pointVal;
     }
-    // Alternate turn (0/1).
     const totalQuestions =
       persistedState.categories.length * persistedState.difficultyLevels.length;
     const progress =
@@ -121,8 +120,7 @@ function App() {
     setPersistedState((prev) => ({
       ...prev,
       asked: newAsked,
-      scores,
-      turn: 1 - prev.turn,
+      studentScore: newStudentScore,
       progress,
     }));
     closeModal();
@@ -157,8 +155,7 @@ function App() {
   return (
     <div className="jeopardy-app" style={{ background: "#f7fafc", minHeight: "100vh" }}>
       <GameHeader
-        scores={persistedState?.scores}
-        turn={persistedState?.turn}
+        studentScore={persistedState?.studentScore}
         mode={persistedState?.mode}
         categories={persistedState?.categories}
         questionsAsked={persistedState?.asked}

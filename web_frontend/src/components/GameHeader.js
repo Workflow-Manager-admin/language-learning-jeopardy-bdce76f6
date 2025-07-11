@@ -2,15 +2,11 @@ import React from "react";
 
 /**
  * PUBLIC_INTERFACE
- * Fixed header showing scores, turn, progress, and categories.
- * Props: {scores, turn, mode, categories, questionsAsked, progress, theme}
- *
- * Enhanced for: higher contrast, bolder scores, larger clickable/touch targets, responsive to large and small screens,
- * accessible ARIA labels, and abundant comments explaining all polish changes.
+ * Fixed header showing score, progress, and categories (student winnings only).
+ * Props: {studentScore, mode, categories, questionsAsked, progress, theme}
  */
 function GameHeader({
-  scores = [0, 0],
-  turn = 0,
+  studentScore = 0,
   mode = "init",
   categories = [],
   questionsAsked = [],
@@ -52,6 +48,7 @@ function GameHeader({
       >
         Language Jeopardy
       </span>
+
       {/* Show progressbar only after dataset loaded */}
       {mode !== "init" && categories.length > 0 && (
         <div
@@ -86,10 +83,11 @@ function GameHeader({
           ></div>
         </div>
       )}
-      {/* Score, turn indicator: highly visible boxes */}
+
+      {/* Score display: only total student winnings */}
       <div
         className="scores-box"
-        aria-label="Scores"
+        aria-label="Score"
         style={{
           display: "flex",
           gap: "2.1em",
@@ -98,61 +96,22 @@ function GameHeader({
         }}
       >
         <span
-          className="scores-player teacher"
-          aria-label="Teacher's Score"
-          style={{
-            background: `linear-gradient(123deg, ${theme.primary} 78%, #246ec1 100%)`,
-            color: "#fff",
-            fontWeight: 900,
-            fontSize: "1.18em",
-            lineHeight: 1.19,
-            padding: "0.2em 1.38em",
-            borderRadius: "9px",
-            boxShadow: "0 2px 8px #aac8ff34",
-            border: `2.5px solid ${theme.secondary}88`,
-            outline: "none"
-          }}
-        >
-          Teacher: {scores[0]}
-        </span>
-        <span
           className="scores-player"
-          aria-label="Student's Score"
+          aria-label="Student's winnings"
           style={{
             background: `linear-gradient(110deg, ${theme.secondary} 93%, #fffde7 100%)`,
             color: "#161805",
             fontWeight: 900,
-            fontSize: "1.13em",
+            fontSize: "1.20em",
             lineHeight: 1.19,
-            padding: "0.20em 1.36em",
+            padding: "0.22em 1.58em",
             borderRadius: "9px",
             boxShadow: "0 2px 8px #fff8e378",
             border: `2.5px solid ${theme.primary}18`
           }}
         >
-          Student: {scores[1]}
+          Total Won: {studentScore}
         </span>
-        {mode === "playing" && (
-          <span
-            className="turn-indicator"
-            aria-label={turn === 0 ? "Teacher's turn" : "Student's turn"}
-            style={{
-              background: `linear-gradient(88deg, ${theme.accent} 80%, #77e596 100%)`,
-              color: "#fff",
-              fontWeight: 800,
-              fontSize: "1.04em",
-              padding: "0.17em 0.98em",
-              borderRadius: "6px",
-              marginLeft: "0.29em",
-              minWidth: 92,
-              boxShadow: "0 1px 6px #b0ffd255",
-              textAlign: "center",
-              outline: "none"
-            }}
-          >
-            {turn === 0 ? "Teacher" : "Student"} turn
-          </span>
-        )}
       </div>
     </header>
   );
